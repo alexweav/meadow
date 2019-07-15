@@ -1,48 +1,77 @@
 ---
 version: 2
 jobs:
-  test:
+  setup:
     working_directory: ~/meadow
     docker:
-      - image: circleci/elixir:1.9-node
+      - image: buildpack-deps
+    steps:
+      - run:
+          command: |
+            mkdir -p /tmp/workspace
+            echo $CIRCLE_WORKFLOW_WORKSPACE_ID > /tmp/workspace/coveralls_build_id
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - coveralls_build_id
+  elixir:
+    working_directory: ~/meadow
+    docker:
+      - image: circleci/elixir:1.9
         environment:
-          DATABASE_URL: ecto://root@localhost/circle_test
           MIX_ENV: test
       - image: circleci/postgres:10-alpine
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "mix.lock" }}-{{ checksum "assets/yarn.lock" }}
+          key: mix-cache-{{ checksum "mix.lock" }}
       - run:
           name: Install hex & rebar
           command: mix do local.hex --force, local.rebar --force
       - run:
           name: Install Elixir dependencies
           command: mix do deps.get, deps.compile
+      - save_cache:
+          key: mix-cache-{{ checksum "mix.lock" }}
+          paths:
+            - ~/meadow/deps
+            - ~/meadow/_build
+      - run:
+          name: Run Elixir Tests
+          command: |
+            export CIRCLE_WORKFLOW_WORKSPACE_ID=$(cat /tmp/workspace/coveralls_build_id)
+            mix test && mix coveralls.circle
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: tests
+  javascript:
+    working_directory: ~/meadow
+    docker:
+      - image: circleci/node:11
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - restore_cache:
+          key: yarn-cache-{{ checksum "assets/yarn.lock" }}
       - run:
           name: Install JS dependencies
           command: yarn install
           working_directory: ~/meadow/assets
       - save_cache:
-          key: dependency-cache-{{ checksum "mix.lock" }}-{{ checksum "assets/yarn.lock" }}
+          key: yarn-cache-{{ checksum "assets/yarn.lock" }}
           paths:
             - ~/meadow/assets/node_modules
-            - ~/meadow/deps
-            - ~/meadow/_build
-      - run:
-          name: Run Elixir Tests
-          command: mix test && mix coveralls.circle
       - run:
           name: Run JS Tests
           command: |
+            export CIRCLE_WORKFLOW_WORKSPACE_ID=$(cat /tmp/workspace/coveralls_build_id)
             export COVERALLS_SERVICE_NAME=circle-ci 
             export COVERALLS_SERVICE_JOB_ID=$CIRCLE_WORKFLOW_WORKSPACE_ID 
-            yarn ci --coverageReporters=text-lcov | yarn run coveralls
+            yarn ci --coverageReporters=text-lcov | yarn run coveralls ~/meadow
           working_directory: ~/meadow/assets
-      - run:
-          name: Merge coverage output
-          command: |
-            curl -F "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID" -F "payload[status]=done" "https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN"
       - run:
           name: Test Webpack build
           command: yarn deploy
@@ -50,8 +79,29 @@ jobs:
       - store_artifacts:
           path: /tmp/test-results
           destination: tests
+  cleanup:
+    docker:
+      - image: circleci/node:11
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Merge coverage output
+          command: |
+            export CIRCLE_WORKFLOW_WORKSPACE_ID=$(cat /tmp/workspace/coveralls_build_id)
+            curl -F "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID" -F "payload[status]=done" "https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN"
 workflows:
   version: 2
   ci:
     jobs:
-      - test
+      - setup
+      - elixir:
+          requires:
+            - setup
+      - javascript:
+          requires:
+            - setup
+      - cleanup:
+          requires:
+            - elixir
+            - javascript
