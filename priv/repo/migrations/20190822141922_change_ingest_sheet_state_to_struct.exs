@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.ChangeIngestSheetStateToStruct do
+defmodule Meadow.Repo.Migrations.ChangeSheetStateToStruct do
   use Ecto.Migration
 
   def change do

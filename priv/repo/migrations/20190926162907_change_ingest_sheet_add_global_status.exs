@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.ChangeIngestSheetAddGlobalStatus do
+defmodule Meadow.Repo.Migrations.ChangeSheetAddGlobalStatus do
   use Ecto.Migration
 
   def change do

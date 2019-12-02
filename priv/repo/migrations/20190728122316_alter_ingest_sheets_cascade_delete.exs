@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.AlterIngestSheetsCascadeDelete do
+defmodule Meadow.Repo.Migrations.AlterSheetsCascadeDelete do
   use Ecto.Migration
 
   def change do

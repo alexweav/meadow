@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.ChangeIngestSheetsFileErrorsToText do
+defmodule Meadow.Repo.Migrations.ChangeSheetsFileErrorsToText do
   use Ecto.Migration
 
   def change do

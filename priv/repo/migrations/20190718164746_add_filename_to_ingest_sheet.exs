@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.AddFilenameToIngestSheet do
+defmodule Meadow.Repo.Migrations.AddFilenameToSheet do
   use Ecto.Migration
 
   def change do

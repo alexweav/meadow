@@ -36,7 +36,7 @@ const IngestSheet = ({
     error: progressError,
     subscribeToMore: progressSubscribeToMore
   } = useQuery(GET_INGEST_SHEET_PROGRESS, {
-    variables: { ingestSheetId: id },
+    variables: { sheetId: id },
     fetchPolicy: "network-only"
   });
 
@@ -56,18 +56,18 @@ const IngestSheet = ({
       )}
 
       {["COMPLETED"].indexOf(status) > -1 && (
-        <IngestSheetCompleted ingestSheetId={ingestSheetData.id} />
+        <IngestSheetCompleted sheetId={ingestSheetData.id} />
       )}
 
       {["VALID", "ROW_FAIL", "FILE_FAIL", "UPLOADED"].indexOf(status) > -1 && (
         <>
           <IngestSheetActionRow
-            ingestSheetId={id}
+            sheetId={id}
             projectId={projectId}
             status={status}
           />
           <IngestSheetValidations
-            ingestSheetId={id}
+            sheetId={id}
             status={status}
             initialProgress={progressData.ingestSheetProgress}
             subscribeToIngestSheetProgress={progressSubscribeToMore}

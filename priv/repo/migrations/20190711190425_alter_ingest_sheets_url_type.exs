@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.AlterIngestSheetsUrlType do
+defmodule Meadow.Repo.Migrations.AlterSheetsUrlType do
   use Ecto.Migration
 
   def change do

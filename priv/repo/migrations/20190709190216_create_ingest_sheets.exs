@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.CreateIngestSheets do
+defmodule Meadow.Repo.Migrations.CreateSheets do
   use Ecto.Migration
 
   def change do

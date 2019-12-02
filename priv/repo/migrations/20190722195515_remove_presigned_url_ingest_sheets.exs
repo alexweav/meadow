@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.RemovePresignedUrlIngestSheets do
+defmodule Meadow.Repo.Migrations.RemovePresignedUrlSheets do
   use Ecto.Migration
 
   def change do

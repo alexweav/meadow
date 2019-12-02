@@ -1,4 +1,4 @@
-defmodule Meadow.Repo.Migrations.ChangeIngestSheetTableAddErrors do
+defmodule Meadow.Repo.Migrations.ChangeSheetTableAddErrors do
   use Ecto.Migration
 
   def change do
